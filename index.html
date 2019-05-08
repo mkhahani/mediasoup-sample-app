@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" type="image/png" href="mediasoup.png" />
+  <title>Mediasoup Sample App</title>
+</head>
+<body>
+  <div>
+    <div><button id="btn_connect">Connect</button> <span id="connection_status"></span></div><br>
+    <div><button id="btn_publish" disabled>Publish</button> <span id="pub_status"></span></div><br>
+    <div><button id="btn_subscribe" disabled>Subscribe</button> <span id="sub_status"></span></div><br>
+  </div>
+  <br>
+  <table>
+    <tr>
+      <td>
+        <div>Local</div>
+        <video id="local_video" controls autoplay playsinline style="max-width:400px"></video>
+      </td>
+      <td>
+        <div>Remote</div>
+        <video id="remote_video" controls autoplay playsinline style="max-width:400px"></video>
+      </td>
+    </tr>
+  </table>
+</body>
+<script>
+  // window.localStorage.setItem('debug', 'mediasoup-client:WARN* mediasoup-client:ERROR*');
+  window.localStorage.setItem('debug', 'mediasoup-client:*');
+</script>
+<script type="text/javascript" src="app-bundle.js"></script>
+</html>
