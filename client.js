@@ -68,7 +68,7 @@ async function loadDevice (routerRtpCapabilities) {
     }
   }
   console.log('device:', device.handlerName);
-  await device.load({routerRtpCapabilities});
+  await device.load({ routerRtpCapabilities });
 }
 
 async function publish () {
@@ -94,14 +94,14 @@ async function publish () {
 
 async function connectProducerTransport (transportInfo) {
   const transport = device.createSendTransport(transportInfo);
-  transport.on('connect', async ({dtlsParameters}, callback, errback) => {
-    socket.request('connectProducerTransport', {dtlsParameters})
+  transport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+    socket.request('connectProducerTransport', { dtlsParameters })
       .then(callback)
       .catch(errback);
   });
 
   transport.on(
-    'produce', ({kind, rtpParameters}, callback, errback) => {
+    'produce', ({ kind, rtpParameters }, callback, errback) => {
       socket.request('produce', {
         transportId: transport.id,
         kind,
@@ -129,7 +129,7 @@ async function subscribe () {
 async function connectConsumerTransport (transportInfo) {
   const transport = device.createRecvTransport(transportInfo);
   console.log('consumer transport', transport);
-  transport.on('connect', ({dtlsParameters}, callback, errback) => {
+  transport.on('connect', ({ dtlsParameters }, callback, errback) => {
     console.log('consumer transport connected');
     socket.request('connectConsumerTransport', {
       transportId: transport.id,
@@ -183,7 +183,7 @@ async function startWebcam (transport) {
   }
   const track = stream.getVideoTracks()[0];
   document.querySelector('#local_video').srcObject = stream;
-  webcamProducer = await transport.produce({track});
+  webcamProducer = await transport.produce({ track });
   webcamProducer.on('transportclose', () => {
     webcamProducer = null;
   });
@@ -203,6 +203,6 @@ async function stopWebcam () {
 
   webcamProducer.close();
 
-  await socket.request('closeProducer', {producerId: webcamProducer.id});
+  await socket.request('closeProducer', { producerId: webcamProducer.id });
   webcamProducer = null;
 }
