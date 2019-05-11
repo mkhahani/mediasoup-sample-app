@@ -14,7 +14,6 @@ let producer;
 let consumer;
 let producerTransport;
 let consumerTransport;
-let rtpCapabilities;
 let mediasoupRouter;
 
 (async () => {
@@ -82,6 +81,11 @@ async function runWebSocketServer () {
   socketServer.on('connection', (socket) => {
     console.log('client connected');
 
+    // inform the client about existence of producer
+    if (producer) {
+      socket.emit('newProducer');
+    }
+
     socket.on('disconnect', () => {
       console.log('client disconnected');
     });
@@ -106,7 +110,6 @@ async function runWebSocketServer () {
       console.log('createConsumerTransport');
       const { transport, params } = await createWebRtcTransport();
       consumerTransport = transport;
-      rtpCapabilities = data.rtpCapabilities;
       callback(params);
     });
 
@@ -127,17 +130,14 @@ async function runWebSocketServer () {
       const {kind, rtpParameters} = data;
       producer = await producerTransport.produce({ kind, rtpParameters });
       callback({ id: producer.id });
-    });
 
-    socket.on('closeProducer', async (data, callback) => {
-      console.log('closeProducer');
-      producer.close();
-      callback();
+      // inform clients about new producer
+      socket.broadcast.emit('newProducer');
     });
 
     socket.on('consume', async (data, callback) => {
       console.log('consume');
-      callback(await createConsumer(producer, rtpCapabilities));
+      callback(await createConsumer(producer, data.rtpCapabilities));
     });
 
     socket.on('newConsumer', async () => {
@@ -157,8 +157,7 @@ async function runMediasoupWorker () {
   });
 
   worker.on('died', () => {
-    console.error(
-      'mediasoup Worker died, exiting in 2 seconds... [pid:%d]', worker.pid);
+    console.error('mediasoup Worker died, exiting in 2 seconds... [pid:%d]', worker.pid);
 
     setTimeout(() => process.exit(1), 2000);
   });

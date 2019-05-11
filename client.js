@@ -7,8 +7,7 @@ const hostname = window.location.hostname;
 
 let device;
 let socket;
-let webcamProducer;
-let producerTransport;
+let producer;
 
 const $ = document.querySelector.bind(document);
 const btnConnect = $('#btn_connect');
@@ -57,6 +56,11 @@ async function connect () {
     txtConnection.innerHTML = 'Connection failed';
     btnConnect.disabled = false;
   });
+
+  socket.on('newProducer', () => {
+    console.log('newProducer');
+    btnSubscribe.disabled = false;
+  });
 }
 
 async function loadDevice (routerRtpCapabilities) {
@@ -79,7 +83,7 @@ async function publish () {
     forceTcp: false,
     rtpCapabilities: device.rtpCapabilities,
   });
-  const transport = producerTransport = await connectProducerTransport(data);
+  const transport = await connectProducerTransport(data);
   console.log('producer transport', transport);
 
   try {
@@ -120,7 +124,6 @@ async function subscribe () {
   btnSubscribe.disabled = true;
   const data = await socket.request('createConsumerTransport', {
     forceTcp: false,
-    rtpCapabilities: device.rtpCapabilities,
   });
   await connectConsumerTransport(data);
   txtSubscription.innerHTML = 'subscribed';
@@ -142,7 +145,8 @@ async function connectConsumerTransport (transportInfo) {
 }
 
 async function consume (transport) {
-  const data = await socket.request('consume');
+  const { rtpCapabilities } = device;
+  const data = await socket.request('consume', { rtpCapabilities });
   const {
     producerId,
     id,
@@ -183,26 +187,5 @@ async function startWebcam (transport) {
   }
   const track = stream.getVideoTracks()[0];
   document.querySelector('#local_video').srcObject = stream;
-  webcamProducer = await transport.produce({ track });
-  webcamProducer.on('transportclose', () => {
-    webcamProducer = null;
-  });
-  webcamProducer.on('trackended', () => {
-    stopWebcam()
-      .catch(() => {
-      });
-  });
-}
-
-async function stopWebcam () {
-  console.info('stop webcam...');
-
-  if (webcamProducer) {
-    return;
-  }
-
-  webcamProducer.close();
-
-  await socket.request('closeProducer', { producerId: webcamProducer.id });
-  webcamProducer = null;
+  producer = await transport.produce({ track });
 }
