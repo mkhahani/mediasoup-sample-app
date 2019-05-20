@@ -27,9 +27,7 @@ let mediasoupRouter;
   }
 })();
 
-async function runExpressApp () {
-  console.info('creating Express app...');
-
+async function runExpressApp() {
   expressApp = express();
   expressApp.use(express.json());
   expressApp.use(express.static(__dirname));
@@ -48,9 +46,7 @@ async function runExpressApp () {
   });
 }
 
-async function runHttpsServer () {
-  console.info('running HTTPS server...');
-
+async function runHttpsServer() {
   // HTTPS server for the WebSocket server
   const tls = {
     cert: fs.readFileSync(config.sslCrt),
@@ -69,9 +65,7 @@ async function runHttpsServer () {
   });
 }
 
-async function runWebSocketServer () {
-  console.info('running web socket server...');
-
+async function runWebSocketServer() {
   socketServer = socketIO(httpsServer, {
     serveClient: false,
     path: '/server',
@@ -95,38 +89,32 @@ async function runWebSocketServer () {
     });
 
     socket.on('getRouterRtpCapabilities', (data, callback) => {
-      console.log('getRouterRtpCapabilities');
       callback(mediasoupRouter.rtpCapabilities);
     });
 
     socket.on('createProducerTransport', async (data, callback) => {
-      console.log('createProducerTransport');
       const { transport, params } = await createWebRtcTransport();
       producerTransport = transport;
       callback(params);
     });
 
     socket.on('createConsumerTransport', async (data, callback) => {
-      console.log('createConsumerTransport');
       const { transport, params } = await createWebRtcTransport();
       consumerTransport = transport;
       callback(params);
     });
 
     socket.on('connectProducerTransport', async (data, callback) => {
-      console.log('connectProducerTransport');
       await producerTransport.connect({ dtlsParameters: data.dtlsParameters });
       callback();
     });
 
     socket.on('connectConsumerTransport', async (data, callback) => {
-      console.log('connectConsumerTransport');
       await consumerTransport.connect({ dtlsParameters: data.dtlsParameters });
       callback();
     });
 
     socket.on('produce', async (data, callback) => {
-      console.log('produce');
       const {kind, rtpParameters} = data;
       producer = await producerTransport.produce({ kind, rtpParameters });
       callback({ id: producer.id });
@@ -136,29 +124,21 @@ async function runWebSocketServer () {
     });
 
     socket.on('consume', async (data, callback) => {
-      console.log('consume');
       callback(await createConsumer(producer, data.rtpCapabilities));
-    });
-
-    socket.on('newConsumer', async () => {
-      console.log('newConsumer');
-      // if is video, resume the Consumer to ask for an efficient key frame
-      if (producer.kind === 'video') {
-        await consumer.resume();
-      }
     });
   });
 }
 
-async function runMediasoupWorker () {
+async function runMediasoupWorker() {
   worker = await mediasoup.createWorker({
+    logLevel: config.mediasoup.worker.logLevel,
+    logTags: config.mediasoup.worker.logTags,
     rtcMinPort: config.mediasoup.worker.rtcMinPort,
     rtcMaxPort: config.mediasoup.worker.rtcMaxPort,
   });
 
   worker.on('died', () => {
     console.error('mediasoup Worker died, exiting in 2 seconds... [pid:%d]', worker.pid);
-
     setTimeout(() => process.exit(1), 2000);
   });
 
@@ -166,7 +146,7 @@ async function runMediasoupWorker () {
   mediasoupRouter = await worker.createRouter({ mediaCodecs });
 }
 
-async function createWebRtcTransport () {
+async function createWebRtcTransport() {
   const {
     maxIncomingBitrate,
     initialAvailableOutgoingBitrate
@@ -196,24 +176,24 @@ async function createWebRtcTransport () {
   };
 }
 
-async function createConsumer (producer, rtpCapabilities) {
+async function createConsumer(producer, rtpCapabilities) {
   if (!mediasoupRouter.canConsume(
     {
       producerId: producer.id,
       rtpCapabilities,
     })
   ) {
-    console.warn('can not consume');
+    console.error('can not consume');
     return;
   }
   try {
     consumer = await consumerTransport.consume({
       producerId: producer.id,
-      rtpCapabilities: rtpCapabilities,
-      paused: producer.kind === 'video',
+      rtpCapabilities,
+      paused: false,
     });
   } catch (error) {
-    console.warn('createConsumer() | transport.consume():%o', error);
+    console.error('consume failed', error);
     return;
   }
 
