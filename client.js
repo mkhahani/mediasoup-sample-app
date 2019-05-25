@@ -71,8 +71,6 @@ async function loadDevice(routerRtpCapabilities) {
 }
 
 async function publish() {
-  txtPublish.innerHTML = 'publishing...';
-  btnPublish.disabled = true;
   const data = await socket.request('createProducerTransport', {
     forceTcp: false,
     rtpCapabilities: device.rtpCapabilities,
@@ -98,14 +96,38 @@ async function publish() {
     }
   });
 
+  transport.on('connectionstatechange', (state) => {
+    switch (state) {
+      case 'connecting':
+        txtPublish.innerHTML = 'publishing...';
+        btnPublish.disabled = true;
+        btnSubscribe.disabled = true;
+      break;
+
+      case 'connected':
+        document.querySelector('#local_video').srcObject = stream;
+        txtPublish.innerHTML = 'published';
+        btnPublish.disabled = true;
+        btnSubscribe.disabled = false;
+      break;
+
+      case 'failed':
+        transport.close();
+        txtPublish.innerHTML = 'failed';
+        btnPublish.disabled = false;
+        btnSubscribe.disabled = true;
+      break;
+
+      default: break;
+    }
+  });
+
+  let stream;
   try {
-    await startWebcam(transport);
+    stream = await startWebcam(transport);
   } catch (err) {
     txtPublish.innerHTML = 'failed';
-    return;
   }
-  txtPublish.innerHTML = 'published';
-  btnSubscribe.disabled = false;
 }
 
 async function startWebcam(transport) {
@@ -122,14 +144,11 @@ async function startWebcam(transport) {
     throw err;
   }
   const track = stream.getVideoTracks()[0];
-  document.querySelector('#local_video').srcObject = stream;
   producer = await transport.produce({ track });
+  return stream;
 }
 
 async function subscribe() {
-  txtSubscription.innerHTML = 'subscribing...';
-  btnSubscribe.disabled = true;
-
   const data = await socket.request('createConsumerTransport', {
     forceTcp: false,
   });
@@ -144,8 +163,30 @@ async function subscribe() {
       .catch(errback);
   });
 
-  await consume(transport);
-  txtSubscription.innerHTML = 'subscribed';
+  transport.on('connectionstatechange', (state) => {
+    switch (state) {
+      case 'connecting':
+        txtSubscription.innerHTML = 'subscribing...';
+        btnSubscribe.disabled = true;
+        break;
+
+      case 'connected':
+        document.querySelector('#remote_video').srcObject = stream;
+        txtSubscription.innerHTML = 'subscribed';
+        btnSubscribe.disabled = true;
+        break;
+
+      case 'failed':
+        transport.close();
+        txtSubscription.innerHTML = 'failed';
+        btnSubscribe.disabled = false;
+        break;
+
+      default: break;
+    }
+  });
+
+  const stream = await consume(transport);
 }
 
 async function consume(transport) {
@@ -168,5 +209,5 @@ async function consume(transport) {
   });
   const stream = new MediaStream();
   stream.addTrack(consumer.track);
-  document.querySelector('#remote_video').srcObject = stream;
+  return stream;
 }
