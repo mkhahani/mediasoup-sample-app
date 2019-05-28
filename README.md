@@ -5,8 +5,9 @@ A minimal Client/Server app based on Mediasoup and Socket.io
 
 ## Dependencies
 
-* Node.js v8+
-* Browserify
+* [Mediasoup v3 requirements](https://mediasoup.org/documentation/v3/mediasoup/installation/#requirements)
+* Node.js >= v8.6
+* [Browserify](http://browserify.org/)
 
 
 ## Run
