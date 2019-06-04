@@ -126,6 +126,11 @@ async function runWebSocketServer() {
     socket.on('consume', async (data, callback) => {
       callback(await createConsumer(producer, data.rtpCapabilities));
     });
+
+    socket.on('resume', async (data, callback) => {
+      await consumer.resume();
+      callback();
+    });
   });
 }
 
@@ -190,7 +195,7 @@ async function createConsumer(producer, rtpCapabilities) {
     consumer = await consumerTransport.consume({
       producerId: producer.id,
       rtpCapabilities,
-      paused: false,
+      paused: producer.kind === 'video',
     });
   } catch (error) {
     console.error('consume failed', error);

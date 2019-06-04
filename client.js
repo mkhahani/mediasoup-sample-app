@@ -187,6 +187,7 @@ async function subscribe() {
   });
 
   const stream = await consume(transport);
+  socket.request('resume');
 }
 
 async function consume(transport) {
