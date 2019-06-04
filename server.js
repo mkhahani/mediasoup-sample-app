@@ -202,6 +202,10 @@ async function createConsumer(producer, rtpCapabilities) {
     return;
   }
 
+  if (consumer.type === 'simulcast') {
+    await consumer.setPreferredLayers({ spatialLayer: 2, temporalLayer: 2 });
+  }
+
   return {
     producerId: producer.id,
     id: consumer.id,

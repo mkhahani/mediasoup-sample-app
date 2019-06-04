@@ -18,6 +18,7 @@ const $btnSubscribe = $('#btn_subscribe');
 const $txtConnection = $('#connection_status');
 const $txtPublish = $('#pub_status');
 const $txtSubscription = $('#sub_status');
+const $chkSimulcast = $('#chk_simulcast');
 
 $btnConnect.addEventListener('click', connect);
 $btnPublish.addEventListener('click', publish);
@@ -146,7 +147,18 @@ async function startWebcam(transport) {
     throw err;
   }
   const track = stream.getVideoTracks()[0];
-  producer = await transport.produce({ track });
+  const params = { track };
+  if ($chkSimulcast.checked) {
+    params.encodings = [
+      { maxBitrate: 100000 },
+      { maxBitrate: 300000 },
+      { maxBitrate: 900000 },
+    ];
+    params.codecOptions = {
+      videoGoogleStartBitrate : 1000
+    };
+  }
+  producer = await transport.produce(params);
   return stream;
 }
 
