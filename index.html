@@ -7,22 +7,70 @@
   <link rel="icon" type="image/png" href="mediasoup.png" />
   <title>Mediasoup Sample App</title>
 </head>
+<style>
+  body {
+    font: .9rem arial, serif;
+  }
+  table {
+    width: 100%;
+    max-width: 800px;
+  }
+  table td {
+    width: 33.33%;
+    vertical-align: top;
+  }
+  fieldset {
+    min-height: 100%;
+    border: 1px solid silver;
+    padding: 10px;
+  }
+  button {
+    padding: 5px;
+    margin: 5px;
+  }
+  video {
+    width: 100%;
+  }
+  span {
+    font-family: monospace;
+  }
+</style>
 <body>
-  <div>
-    <div><button id="btn_connect">Connect</button> <span id="connection_status"></span></div><br>
-    <div><button id="btn_publish" disabled>Publish</button> <span id="pub_status"></span></div><br>
-    <div><button id="btn_subscribe" disabled>Subscribe</button> <span id="sub_status"></span></div><br>
-  </div>
-  <br>
   <table>
     <tr>
       <td>
         <div>Local</div>
-        <video id="local_video" controls autoplay playsinline style="max-width:400px"></video>
+        <video id="local_video" controls autoplay playsinline></video>
       </td>
       <td>
         <div>Remote</div>
-        <video id="remote_video" controls autoplay playsinline style="max-width:400px"></video>
+        <video id="remote_video" controls autoplay playsinline></video>
+      </td>
+    </tr>
+  </table>
+  <br>
+  <table>
+    <tr>
+      <td>
+        <fieldset id="fs_connection">
+          <legend>Connection</legend>
+          <div><button id="btn_connect">Connect</button> <span id="connection_status"></span></div>
+        </fieldset>
+      </td>
+      <td>
+        <fieldset id="fs_publish" disabled>
+          <legend>Publishing</legend>
+          <div>
+            <button id="btn_publish">Publish</button>
+            <span id="pub_status"></span>
+          </div>
+        </fieldset>
+      </td>
+      <td>
+        <fieldset id="fs_subscribe" disabled>
+          <legend>Subscription</legend>
+          <div><button id="btn_subscribe">Subscribe</button> <span id="sub_status"></span></div>
+        </fieldset>
       </td>
     </tr>
   </table>

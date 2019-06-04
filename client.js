@@ -10,20 +10,22 @@ let socket;
 let producer;
 
 const $ = document.querySelector.bind(document);
-const btnConnect = $('#btn_connect');
-const btnPublish = $('#btn_publish');
-const btnSubscribe = $('#btn_subscribe');
-const txtConnection = $('#connection_status');
-const txtPublish = $('#pub_status');
-const txtSubscription = $('#sub_status');
+const $fsPublish = $('#fs_publish');
+const $fsSubscribe = $('#fs_subscribe');
+const $btnConnect = $('#btn_connect');
+const $btnPublish = $('#btn_publish');
+const $btnSubscribe = $('#btn_subscribe');
+const $txtConnection = $('#connection_status');
+const $txtPublish = $('#pub_status');
+const $txtSubscription = $('#sub_status');
 
-btnConnect.addEventListener('click', connect);
-btnPublish.addEventListener('click', publish);
-btnSubscribe.addEventListener('click', subscribe);
+$btnConnect.addEventListener('click', connect);
+$btnPublish.addEventListener('click', publish);
+$btnSubscribe.addEventListener('click', subscribe);
 
 async function connect() {
-  btnConnect.disabled = true;
-  txtConnection.innerHTML = 'Connecting...';
+  $btnConnect.disabled = true;
+  $txtConnection.innerHTML = 'Connecting...';
 
   const opts = {
     path: '/server',
@@ -35,27 +37,27 @@ async function connect() {
   socket.request = socketPromise(socket);
 
   socket.on('connect', async () => {
-    txtConnection.innerHTML = 'Connected';
-    btnPublish.disabled = false;
+    $txtConnection.innerHTML = 'Connected';
+    $fsPublish.disabled = false;
 
     const data = await socket.request('getRouterRtpCapabilities');
     await loadDevice(data);
   });
 
   socket.on('disconnect', () => {
-    txtConnection.innerHTML = 'Disconnected';
-    btnConnect.disabled = false;
-    btnPublish.disabled = true;
+    $txtConnection.innerHTML = 'Disconnected';
+    $btnConnect.disabled = false;
+    $fsPublish.disabled = true;
   });
 
   socket.on('connect_error', (error) => {
     console.error('could not connect to %s%s (%s)', serverUrl, opts.path, error.message);
-    txtConnection.innerHTML = 'Connection failed';
-    btnConnect.disabled = false;
+    $txtConnection.innerHTML = 'Connection failed';
+    $btnConnect.disabled = false;
   });
 
   socket.on('newProducer', () => {
-    btnSubscribe.disabled = false;
+    $fsSubscribe.disabled = false;
   });
 }
 
@@ -99,23 +101,23 @@ async function publish() {
   transport.on('connectionstatechange', (state) => {
     switch (state) {
       case 'connecting':
-        txtPublish.innerHTML = 'publishing...';
-        btnPublish.disabled = true;
-        btnSubscribe.disabled = true;
+        $txtPublish.innerHTML = 'publishing...';
+        $fsPublish.disabled = true;
+        $fsSubscribe.disabled = true;
       break;
 
       case 'connected':
         document.querySelector('#local_video').srcObject = stream;
-        txtPublish.innerHTML = 'published';
-        btnPublish.disabled = true;
-        btnSubscribe.disabled = false;
+        $txtPublish.innerHTML = 'published';
+        $fsPublish.disabled = true;
+        $fsSubscribe.disabled = false;
       break;
 
       case 'failed':
         transport.close();
-        txtPublish.innerHTML = 'failed';
-        btnPublish.disabled = false;
-        btnSubscribe.disabled = true;
+        $txtPublish.innerHTML = 'failed';
+        $fsPublish.disabled = false;
+        $fsSubscribe.disabled = true;
       break;
 
       default: break;
@@ -126,7 +128,7 @@ async function publish() {
   try {
     stream = await startWebcam(transport);
   } catch (err) {
-    txtPublish.innerHTML = 'failed';
+    $txtPublish.innerHTML = 'failed';
   }
 }
 
@@ -166,20 +168,20 @@ async function subscribe() {
   transport.on('connectionstatechange', (state) => {
     switch (state) {
       case 'connecting':
-        txtSubscription.innerHTML = 'subscribing...';
-        btnSubscribe.disabled = true;
+        $txtSubscription.innerHTML = 'subscribing...';
+        $fsSubscribe.disabled = true;
         break;
 
       case 'connected':
         document.querySelector('#remote_video').srcObject = stream;
-        txtSubscription.innerHTML = 'subscribed';
-        btnSubscribe.disabled = true;
+        $txtSubscription.innerHTML = 'subscribed';
+        $fsSubscribe.disabled = true;
         break;
 
       case 'failed':
         transport.close();
-        txtSubscription.innerHTML = 'failed';
-        btnSubscribe.disabled = false;
+        $txtSubscription.innerHTML = 'failed';
+        $fsSubscribe.disabled = false;
         break;
 
       default: break;
