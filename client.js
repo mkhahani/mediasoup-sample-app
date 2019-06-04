@@ -13,16 +13,25 @@ const $ = document.querySelector.bind(document);
 const $fsPublish = $('#fs_publish');
 const $fsSubscribe = $('#fs_subscribe');
 const $btnConnect = $('#btn_connect');
-const $btnPublish = $('#btn_publish');
+const $btnWebcam = $('#btn_webcam');
+const $btnScreen = $('#btn_screen');
 const $btnSubscribe = $('#btn_subscribe');
-const $txtConnection = $('#connection_status');
-const $txtPublish = $('#pub_status');
-const $txtSubscription = $('#sub_status');
 const $chkSimulcast = $('#chk_simulcast');
+const $txtConnection = $('#connection_status');
+const $txtWebcam = $('#webcam_status');
+const $txtScreen = $('#screen_status');
+const $txtSubscription = $('#sub_status');
+let $txtPublish;
 
 $btnConnect.addEventListener('click', connect);
-$btnPublish.addEventListener('click', publish);
+$btnWebcam.addEventListener('click', publish);
+$btnScreen.addEventListener('click', publish);
 $btnSubscribe.addEventListener('click', subscribe);
+
+if (typeof navigator.mediaDevices.getDisplayMedia === 'undefined') {
+  $txtScreen.innerHTML = 'Not supported';
+  $btnScreen.disabled = true;
+}
 
 async function connect() {
   $btnConnect.disabled = true;
@@ -73,7 +82,10 @@ async function loadDevice(routerRtpCapabilities) {
   await device.load({ routerRtpCapabilities });
 }
 
-async function publish() {
+async function publish(e) {
+  const isWebcam = (e.target.id === 'btn_webcam');
+  $txtPublish = isWebcam ? $txtWebcam : $txtScreen;
+
   const data = await socket.request('createProducerTransport', {
     forceTcp: false,
     rtpCapabilities: device.rtpCapabilities,
@@ -127,13 +139,13 @@ async function publish() {
 
   let stream;
   try {
-    stream = await startWebcam(transport);
+    stream = await getUserMedia(transport, isWebcam);
   } catch (err) {
     $txtPublish.innerHTML = 'failed';
   }
 }
 
-async function startWebcam(transport) {
+async function getUserMedia(transport, isWebcam) {
   if (!device.canProduce('video')) {
     console.error('cannot produce video');
     return;
@@ -141,7 +153,9 @@ async function startWebcam(transport) {
 
   let stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    stream = isWebcam ?
+      await navigator.mediaDevices.getUserMedia({ video: true }) :
+      await navigator.mediaDevices.getDisplayMedia({ video: true });
   } catch (err) {
     console.error('starting webcam failed,', err.message);
     throw err;
