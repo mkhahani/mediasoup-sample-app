@@ -49,6 +49,7 @@ async function connect() {
   socket.on('connect', async () => {
     $txtConnection.innerHTML = 'Connected';
     $fsPublish.disabled = false;
+    $fsSubscribe.disabled = false;
 
     const data = await socket.request('getRouterRtpCapabilities');
     await loadDevice(data);
@@ -58,6 +59,7 @@ async function connect() {
     $txtConnection.innerHTML = 'Disconnected';
     $btnConnect.disabled = false;
     $fsPublish.disabled = true;
+    $fsSubscribe.disabled = true;
   });
 
   socket.on('connect_error', (error) => {
