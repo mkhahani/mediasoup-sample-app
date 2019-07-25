@@ -92,8 +92,12 @@ async function publish(e) {
     forceTcp: false,
     rtpCapabilities: device.rtpCapabilities,
   });
-  const transport = device.createSendTransport(data);
+  if (data.error) {
+    console.error(data.error);
+    return;
+  }
 
+  const transport = device.createSendTransport(data);
   transport.on('connect', async ({ dtlsParameters }, callback, errback) => {
     socket.request('connectProducerTransport', { dtlsParameters })
       .then(callback)
@@ -182,6 +186,10 @@ async function subscribe() {
   const data = await socket.request('createConsumerTransport', {
     forceTcp: false,
   });
+  if (data.error) {
+    console.error(data.error);
+    return;
+  }
 
   const transport = device.createRecvTransport(data);
   transport.on('connect', ({ dtlsParameters }, callback, errback) => {

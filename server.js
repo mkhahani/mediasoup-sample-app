@@ -49,7 +49,7 @@ async function runExpressApp() {
 async function runWebServer() {
   const { sslKey, sslCrt } = config;
   if (!fs.existsSync(sslKey) || !fs.existsSync(sslCrt)) {
-    console.error('SSL files are not found. Check your config.js file');
+    console.error('SSL files are not found. check your config.js file');
     process.exit(0);
   }
   const tls = {
@@ -58,7 +58,7 @@ async function runWebServer() {
   };
   webServer = https.createServer(tls, expressApp);
   webServer.on('error', (err) => {
-    console.error('starting HTTPS server failed:', err.message);
+    console.error('starting web server failed:', err.message);
   });
 
   await new Promise((resolve) => {
@@ -101,15 +101,25 @@ async function runSocketServer() {
     });
 
     socket.on('createProducerTransport', async (data, callback) => {
-      const { transport, params } = await createWebRtcTransport();
-      producerTransport = transport;
-      callback(params);
+      try {
+        const { transport, params } = await createWebRtcTransport();
+        producerTransport = transport;
+        callback(params);
+      } catch (err) {
+        console.error(err);
+        callback({ error: err.message });
+      }
     });
 
     socket.on('createConsumerTransport', async (data, callback) => {
-      const { transport, params } = await createWebRtcTransport();
-      consumerTransport = transport;
-      callback(params);
+      try {
+        const { transport, params } = await createWebRtcTransport();
+        consumerTransport = transport;
+        callback(params);
+      } catch (err) {
+        console.error(err);
+        callback({ error: err.message });
+      }
     });
 
     socket.on('connectProducerTransport', async (data, callback) => {
@@ -151,7 +161,7 @@ async function runMediasoupWorker() {
   });
 
   worker.on('died', () => {
-    console.error('mediasoup Worker died, exiting in 2 seconds... [pid:%d]', worker.pid);
+    console.error('mediasoup worker died, exiting in 2 seconds... [pid:%d]', worker.pid);
     setTimeout(() => process.exit(1), 2000);
   });
 
