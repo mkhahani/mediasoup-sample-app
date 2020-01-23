@@ -146,6 +146,19 @@ async function publish(e) {
   let stream;
   try {
     stream = await getUserMedia(transport, isWebcam);
+    const track = stream.getVideoTracks()[0];
+    const params = { track };
+    if ($chkSimulcast.checked) {
+      params.encodings = [
+        { maxBitrate: 100000 },
+        { maxBitrate: 300000 },
+        { maxBitrate: 900000 },
+      ];
+      params.codecOptions = {
+        videoGoogleStartBitrate : 1000
+      };
+    }
+    producer = await transport.produce(params);
   } catch (err) {
     $txtPublish.innerHTML = 'failed';
   }
@@ -163,22 +176,9 @@ async function getUserMedia(transport, isWebcam) {
       await navigator.mediaDevices.getUserMedia({ video: true }) :
       await navigator.mediaDevices.getDisplayMedia({ video: true });
   } catch (err) {
-    console.error('starting webcam failed,', err.message);
+    console.error('getUserMedia() failed:', err.message);
     throw err;
   }
-  const track = stream.getVideoTracks()[0];
-  const params = { track };
-  if ($chkSimulcast.checked) {
-    params.encodings = [
-      { maxBitrate: 100000 },
-      { maxBitrate: 300000 },
-      { maxBitrate: 900000 },
-    ];
-    params.codecOptions = {
-      videoGoogleStartBitrate : 1000
-    };
-  }
-  producer = await transport.produce(params);
   return stream;
 }
 
