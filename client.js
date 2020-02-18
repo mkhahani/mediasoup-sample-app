@@ -201,7 +201,7 @@ async function subscribe() {
       .catch(errback);
   });
 
-  transport.on('connectionstatechange', (state) => {
+  transport.on('connectionstatechange', async (state) => {
     switch (state) {
       case 'connecting':
         $txtSubscription.innerHTML = 'subscribing...';
@@ -209,7 +209,8 @@ async function subscribe() {
         break;
 
       case 'connected':
-        document.querySelector('#remote_video').srcObject = stream;
+        document.querySelector('#remote_video').srcObject = await stream;
+        await socket.request('resume');
         $txtSubscription.innerHTML = 'subscribed';
         $fsSubscribe.disabled = true;
         break;
@@ -224,8 +225,7 @@ async function subscribe() {
     }
   });
 
-  const stream = await consume(transport);
-  socket.request('resume');
+  const stream = consume(transport);
 }
 
 async function consume(transport) {

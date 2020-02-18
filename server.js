@@ -67,7 +67,7 @@ async function runWebServer() {
       const listenIps = config.mediasoup.webRtcTransport.listenIps[0];
       const ip = listenIps.announcedIp || listenIps.ip;
       console.log('server is running');
-      console.log(`open https//${ip}:${listenPort} in your web browser`);
+      console.log(`open https://${ip}:${listenPort} in your web browser`);
       resolve();
     });
   });
